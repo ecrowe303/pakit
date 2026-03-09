@@ -1284,6 +1284,9 @@
         New accounts get $5 in free credits (~100–200 packing lists).
       </div>
       <button class="btn-primary" onclick="saveApiKey()">Save Key</button>
+      <div id="settings-back-btn" style="display:none;text-align:center;margin-top:14px;">
+        <span onclick="renderHome()" style="font-size:14px;color:var(--ink-muted);cursor:pointer;text-decoration:underline;">← Back to my trips</span>
+      </div>
     </div>
   </div>
 </div>
@@ -1338,7 +1341,7 @@
 // ══════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════
-function getApiKey() { return localStorage.getItem('packright_api_key') || ''; }
+    function getApiKey() { return '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'; }
 
 let trips = JSON.parse(localStorage.getItem('packright_trips') || '[]');
 let currentTripId = null;
@@ -1465,6 +1468,9 @@ function showSettings() {
   const saved = getApiKey();
   if (inp) inp.value = saved || '';
   updateKeyStatus();
+  // Show back button if they already have a key (came from gear icon)
+  const backBtn = document.getElementById('settings-back-btn');
+  if (backBtn) backBtn.style.display = saved ? 'block' : 'none';
 }
 
 function onApiKeyInput(val) {
@@ -1504,7 +1510,15 @@ function saveApiKey() {
   localStorage.setItem('packright_api_key', key);
   updateKeyStatus(key);
   showToast('✓ API key saved!');
-  setTimeout(() => renderHome(), 800);
+  setTimeout(() => {
+    if (!profile) {
+      profileEdit = { name: '', gender: null, age: null, kids: null };
+      showScreen('profile');
+    } else {
+      renderHome();
+      updateAvatarBtn();
+    }
+  }, 800);
 }
 
 function showPrefs() {
@@ -1582,11 +1596,7 @@ function clearAllPrefs() {
 }
 
 function initApp() {
-  if (!getApiKey()) {
-    // No key yet — show settings first
-    showScreen('settings');
-    setTimeout(() => updateKeyStatus(), 100);
-  } else if (!profile) {
+  if (!profile) {
     profileEdit = { name: '', gender: null, age: null, kids: null };
     showScreen('profile');
   } else {
@@ -2205,11 +2215,10 @@ function wizardNext() {
 //  AI GENERATION
 // ══════════════════════════════════════════
 async function startGeneration() {
-  // Guard: redirect to settings if no key
   const ANTHROPIC_API_KEY = getApiKey();
-  if (!ANTHROPIC_API_KEY || !ANTHROPIC_API_KEY.startsWith('sk-')) {
-    showSettings();
-    showToast('⚠️ Enter your Anthropic API key to generate lists');
+  if (!ANTHROPIC_API_KEY || ANTHROPIC_API_KEY === 'YOUR_API_KEY_HERE') {
+    showToast('⚠️ Open index.html and paste your API key into getApiKey()');
+    renderHome();
     return;
   }
 
