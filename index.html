@@ -809,6 +809,49 @@
   }
   .pref-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  /* Settings screen */
+  .settings-screen {
+    flex: 1; overflow-y: auto; padding: 0 0 60px;
+    animation: fadeSlideIn 0.3s ease;
+  }
+  .settings-hero {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    padding: 36px 24px 28px; text-align: center; color: white;
+  }
+  .settings-hero-icon { font-size: 44px; margin-bottom: 10px; display: block; }
+  .settings-hero h2 { font-family: var(--font-display); font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+  .settings-hero p { font-size: 13px; opacity: 0.75; line-height: 1.5; max-width: 280px; margin: 0 auto; }
+  .settings-body { padding: 24px 20px 0; }
+  .settings-section-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--ink-muted);
+    margin-bottom: 8px; padding-left: 2px;
+  }
+  .api-key-wrap { position: relative; margin-bottom: 8px; }
+  .api-key-input {
+    width: 100%; padding: 13px 48px 13px 14px;
+    font-family: monospace; font-size: 13px; color: var(--ink);
+    background: var(--surface-2); border: 2px solid var(--border);
+    border-radius: var(--radius-sm); outline: none;
+    -webkit-appearance: none; transition: border-color 0.2s;
+    letter-spacing: 0.02em;
+  }
+  .api-key-input:focus { border-color: var(--accent); background: var(--surface); }
+  .api-key-input.valid { border-color: var(--success); }
+  .api-key-toggle {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer; font-size: 18px;
+    color: var(--ink-muted); padding: 4px;
+  }
+  .api-key-hint { font-size: 12px; color: var(--ink-muted); line-height: 1.5; margin-bottom: 20px; }
+  .api-key-hint a { color: var(--accent); text-decoration: none; }
+  .key-status {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; font-weight: 600; margin-bottom: 20px;
+  }
+  .key-status.ok { color: var(--success); }
+  .key-status.missing { color: var(--warn); }
+
   /* Preferences panel */
   .prefs-screen {
     flex: 1; overflow-y: auto;
@@ -1081,7 +1124,7 @@
       <h1>Pack<span>Right</span></h1>
       <div style="display:flex;gap:8px;align-items:center;">
         <div class="profile-avatar" id="profile-avatar-btn" onclick="showProfileEdit()" title="Edit profile">👤</div>
-        <button class="icon-btn" onclick="showPrefs()" aria-label="Preferences" title="Preferences" style="font-size:18px;background:none;border:none;cursor:pointer;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:12px;">⚙️</button>
+        <button class="icon-btn" onclick="showSettings()" aria-label="Settings" title="Settings" style="font-size:18px;background:none;border:none;cursor:pointer;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:12px;">⚙️</button>
         <button class="icon-btn" onclick="goToWizard()" aria-label="New Trip">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -1211,6 +1254,40 @@
   </div>
 </div>
 
+<!-- ══ SCREEN: SETTINGS ══ -->
+<div id="screen-settings" class="screen">
+  <div class="app-header">
+    <button class="icon-btn" onclick="renderHome()" aria-label="Back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <h1>Pack<span>Right</span></h1>
+    <div style="width:44px"></div>
+  </div>
+  <div class="settings-screen">
+    <div class="settings-hero">
+      <span class="settings-hero-icon">🔑</span>
+      <h2>API Key Setup</h2>
+      <p>Your key is stored only on this device and never sent anywhere except Anthropic's API.</p>
+    </div>
+    <div class="settings-body">
+      <div class="settings-section-label">Anthropic API Key</div>
+      <div class="api-key-wrap">
+        <input class="api-key-input" id="api-key-input" type="password"
+          placeholder="sk-ant-api03-..."
+          oninput="onApiKeyInput(this.value)"
+          autocomplete="off" autocorrect="off" spellcheck="false">
+        <button class="api-key-toggle" id="api-key-toggle" onclick="toggleKeyVisibility()" title="Show/hide key">👁</button>
+      </div>
+      <div id="key-status" class="key-status missing">⚠️ No key saved</div>
+      <div class="api-key-hint">
+        Get your free key at <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a> → API Keys → Create Key.<br>
+        New accounts get $5 in free credits (~100–200 packing lists).
+      </div>
+      <button class="btn-primary" onclick="saveApiKey()">Save Key</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ SCREEN: PREFERENCES ══ -->
 <div id="screen-prefs" class="screen">
   <div class="app-header">
@@ -1261,7 +1338,7 @@
 // ══════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════
-const ANTHROPIC_API_KEY = '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';
+function getApiKey() { return localStorage.getItem('packright_api_key') || ''; }
 
 let trips = JSON.parse(localStorage.getItem('packright_trips') || '[]');
 let currentTripId = null;
@@ -1382,6 +1459,54 @@ function buildPrefsContext() {
   return parts.length ? '\n\nUser Preferences (MUST follow):\n- ' + parts.join('\n- ') : '';
 }
 
+function showSettings() {
+  showScreen('settings');
+  const inp = document.getElementById('api-key-input');
+  const saved = getApiKey();
+  if (inp) inp.value = saved || '';
+  updateKeyStatus();
+}
+
+function onApiKeyInput(val) {
+  updateKeyStatus(val);
+}
+
+function updateKeyStatus(val) {
+  const key = val !== undefined ? val : (document.getElementById('api-key-input')?.value || getApiKey());
+  const el = document.getElementById('key-status');
+  const inp = document.getElementById('api-key-input');
+  if (!el) return;
+  if (key && key.startsWith('sk-')) {
+    el.className = 'key-status ok';
+    el.textContent = '✓ Key looks valid';
+    if (inp) inp.classList.add('valid');
+  } else {
+    el.className = 'key-status missing';
+    el.textContent = key ? '⚠️ Key format looks wrong — should start with sk-ant-' : '⚠️ No key saved';
+    if (inp) inp.classList.remove('valid');
+  }
+}
+
+function toggleKeyVisibility() {
+  const inp = document.getElementById('api-key-input');
+  const btn = document.getElementById('api-key-toggle');
+  if (!inp) return;
+  const isHidden = inp.type === 'password';
+  inp.type = isHidden ? 'text' : 'password';
+  if (btn) btn.textContent = isHidden ? '🙈' : '👁';
+}
+
+function saveApiKey() {
+  const inp = document.getElementById('api-key-input');
+  const key = inp?.value?.trim() || '';
+  if (!key) { showToast('Paste your API key first'); return; }
+  if (!key.startsWith('sk-')) { showToast('⚠️ Key should start with sk-ant-...'); return; }
+  localStorage.setItem('packright_api_key', key);
+  updateKeyStatus(key);
+  showToast('✓ API key saved!');
+  setTimeout(() => renderHome(), 800);
+}
+
 function showPrefs() {
   showScreen('prefs');
   renderPrefsContent();
@@ -1457,7 +1582,11 @@ function clearAllPrefs() {
 }
 
 function initApp() {
-  if (!profile) {
+  if (!getApiKey()) {
+    // No key yet — show settings first
+    showScreen('settings');
+    setTimeout(() => updateKeyStatus(), 100);
+  } else if (!profile) {
     profileEdit = { name: '', gender: null, age: null, kids: null };
     showScreen('profile');
   } else {
@@ -2076,11 +2205,11 @@ function wizardNext() {
 //  AI GENERATION
 // ══════════════════════════════════════════
 async function startGeneration() {
-  // Guard: warn clearly if API key is still placeholder
-  if (ANTHROPIC_API_KEY === 'YOUR_ANTHROPIC_API_KEY' || !ANTHROPIC_API_KEY.startsWith('sk-')) {
-    showScreen('wizard');
-    renderWizardStep();
-    alert('⚠️ No API key found!\n\nOpen packright.html in a text editor and replace\nYOUR_ANTHROPIC_API_KEY\nwith your real key from console.anthropic.com');
+  // Guard: redirect to settings if no key
+  const ANTHROPIC_API_KEY = getApiKey();
+  if (!ANTHROPIC_API_KEY || !ANTHROPIC_API_KEY.startsWith('sk-')) {
+    showSettings();
+    showToast('⚠️ Enter your Anthropic API key to generate lists');
     return;
   }
 
@@ -2169,7 +2298,7 @@ Rules:
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
+        'x-api-key': getApiKey(),
         'anthropic-version': '2023-06-01',
         'anthropic-dangerous-direct-browser-access': 'true'
       },
